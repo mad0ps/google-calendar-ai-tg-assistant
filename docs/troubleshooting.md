@@ -1,6 +1,535 @@
 # 🔧 Troubleshooting Guide / Руководство по устранению проблем
 
-[🇷🇺 Русская версия](#-русская-версия) | [🇬🇧 English Version](#-english-version)
+[🇬🇧 English](#-english-version) | [🇷🇺 Русский](#-русская-версия)
+
+---
+
+## 🇬🇧 English Version
+
+### Common Issues and Solutions
+
+#### 1. Bot Doesn't Respond
+
+**Symptoms:**
+- Send message to Telegram but no response
+- No "typing..." indicator
+
+**Diagnosis:**
+
+1. **Check workflow status:**
+   ```
+   n8n → Open workflow → Check status (top right)
+   ```
+   ✅ Should be: `Active` (green button)
+   ❌ If `Inactive` → Click to activate
+
+2. **Check execution logs:**
+   ```
+   n8n → Executions (bottom left tab) → Recent executions
+   ```
+   - If no new executions → Telegram webhook issue
+   - If executions with errors → check error details
+
+3. **Verify Owner ID:**
+   ```
+   Node "Owner Verification" → Condition → rightValue: your Telegram ID
+   ```
+   Get your ID via [@userinfobot](https://t.me/userinfobot)
+
+4. **Check Telegram webhook:**
+   ```bash
+   curl https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getWebhookInfo
+   ```
+   Response should contain `url` with n8n address
+
+**Solution:**
+
+```bash
+# Try deactivating and reactivating workflow:
+1. Click "Active" → "Inactive"
+2. Wait 5 seconds
+3. Click "Inactive" → "Active"
+```
+
+---
+
+#### 2. "Unauthorized" Error
+
+**Symptom:**
+```
+⛔ Unfortunately, this bot is for personal use only.
+
+If you want the same bot for yourself — contact @khanalytiq
+```
+
+**Cause:** Your Telegram ID doesn't match ID in Owner Verification
+
+**Solution:**
+
+1. **Get your Telegram ID:**
+   - Message [@userinfobot](https://t.me/userinfobot)
+   - Copy your ID (e.g., `123456789`)
+
+2. **Update Owner Verification:**
+   ```
+   Node "Owner Verification" → Rule "boss" → Condition
+   rightValue: replace "331119294" with your ID
+   ```
+
+3. **Update Memory Buffer:**
+   ```
+   Node "Simple Memory" → sessionKey
+   Replace "331119294" with your ID
+   ```
+
+4. **Update Error Notification:**
+   ```
+   Node "Error Notification" → chatId
+   Replace "331119294" with your ID
+   ```
+
+5. **Save workflow** (Ctrl+S or Cmd+S)
+
+---
+
+#### 3. OpenAI API Error
+
+**Symptom:**
+```
+❌ Error processing request.
+
+OpenAI Chat Model
+
+Error: Incorrect API key provided
+```
+
+**Possible Causes:**
+
+1. **Invalid API key**
+
+   **Solution:**
+   ```
+   n8n → Credentials → OpenAI API
+   → Verify key starts with "sk-proj-" or "sk-"
+   → If incorrect → create new at platform.openai.com/api-keys
+   ```
+
+2. **No balance on OpenAI account**
+
+   **Check:**
+   ```
+   platform.openai.com → Settings → Billing → Check balance
+   ```
+   
+   **Solution:**
+   ```
+   Add payment method → Add credits (minimum $5)
+   ```
+
+3. **API key revoked or expired**
+
+   **Solution:**
+   ```
+   platform.openai.com → API keys
+   → Check key status
+   → If "Revoked" → create new key
+   → Update in n8n credentials
+   ```
+
+4. **Rate limit exceeded**
+
+   **Error:**
+   ```
+   Error: Rate limit reached for gpt-4-mini
+   ```
+   
+   **Solution:**
+   ```
+   Wait a few minutes or:
+   platform.openai.com → Settings → Limits
+   → Increase limits (if available)
+   ```
+
+---
+
+#### 4. Google Calendar API Error
+
+**Symptom:**
+```
+❌ Error processing request.
+
+Create an event in Google Calendar
+
+Error: Invalid Credentials
+```
+
+**Possible Causes:**
+
+1. **Credential not authorized**
+
+   **Solution:**
+   ```
+   n8n → Find Google Calendar node
+   → Credential → Click "Reconnect"
+   → Sign in to Google account
+   → Allow Calendar access
+   ```
+
+2. **Google Calendar API not enabled**
+
+   **Solution:**
+   ```
+   1. console.cloud.google.com
+   2. Select your project
+   3. APIs & Services → Library
+   4. Find "Google Calendar API"
+   5. Click "Enable"
+   ```
+
+3. **OAuth consent screen not configured**
+
+   **Solution:**
+   ```
+   1. console.cloud.google.com
+   2. APIs & Services → OAuth consent screen
+   3. Fill required fields:
+      - App name
+      - User support email
+      - Developer contact
+   4. Add Scopes:
+      - https://www.googleapis.com/auth/calendar
+      - https://www.googleapis.com/auth/calendar.events
+   5. Add Test Users: your email
+   6. Save
+   ```
+
+4. **Token expired**
+
+   **Symptom:**
+   ```
+   Error: Token has been expired or revoked
+   ```
+   
+   **Solution:**
+   ```
+   n8n → Google Calendar credential
+   → Click "Reconnect"
+   → Re-authorize
+   ```
+
+---
+
+#### 5. Voice Messages Not Recognized
+
+**Symptoms:**
+- Send voice message but no response
+- Error in "Transcribe a recording" node
+
+**Possible Causes:**
+
+1. **File too large**
+
+   **Limit:** 25 MB (Telegram) and 25 MB (OpenAI Whisper)
+   
+   **Solution:**
+   ```
+   Send shorter voice messages (up to 2-3 minutes)
+   ```
+
+2. **Unsupported format**
+
+   **Solution:**
+   ```
+   Telegram automatically converts to OGG
+   If problem persists:
+   - Check "Get a file" node
+   - Ensure Binary data passes to "Transcribe"
+   ```
+
+3. **Whisper API error**
+
+   **Symptom:**
+   ```
+   Error: Audio file could not be processed
+   ```
+   
+   **Solution:**
+   ```
+   - Check audio quality (not too quiet)
+   - Verify OpenAI balance
+   - Check Whisper rate limits (50 req/min)
+   ```
+
+4. **Poor audio quality**
+
+   **Solution:**
+   ```
+   - Record in quiet place
+   - Speak clearly and slowly
+   - Avoid background noise
+   ```
+
+---
+
+#### 6. AI Misinterprets Requests
+
+**Symptoms:**
+- Creates event at wrong time
+- Doesn't understand event name
+- Incorrectly determines date
+
+**Examples:**
+
+**Problem:** "Create meeting tomorrow" → Creates for next week
+
+**Solution:**
+```
+Be more specific:
+✅ "Create meeting tomorrow January 2nd at 3 PM"
+✅ "Create meeting for tomorrow 3 o'clock"
+
+Check timezone in "HTTP Request1" node (Get Timezone)
+```
+
+**Problem:** "Meeting at 3 o'clock" → Creates at 3:00 AM instead of 3:00 PM
+
+**Solution:**
+```
+Clarify:
+✅ "Meeting at 3 PM" or "at 15:00"
+✅ "Meeting at 3 in the afternoon"
+
+Or update prompt in "Calendar AI Agent":
+"If time is ambiguous (1-12), assume PM for business hours"
+```
+
+**Problem:** AI doesn't find event to edit
+
+**Solution:**
+```
+1. First request event list:
+   "What do I have tomorrow?"
+
+2. Then specify exact name:
+   "Move 'Meeting with Ivanov' to 4 PM"
+   (with quotes for exact match)
+```
+
+---
+
+#### 7. Workflow Runs Too Slowly
+
+**Symptoms:**
+- Response takes 30+ seconds
+- Timeout errors
+
+**Diagnosis:**
+
+```
+n8n → Executions → Select slow execution
+→ Check time for each node
+```
+
+**Common Causes:**
+
+1. **OpenAI API slow response**
+
+   **Solution:**
+   ```
+   - Check status.openai.com
+   - If problem persists:
+     Node "OpenAI Chat Model"
+     → Options → Timeout → Increase to 60 seconds
+   ```
+
+2. **Google Calendar API slow**
+
+   **Solution:**
+   ```
+   - Usually temporary
+   - Check status.cloud.google.com
+   ```
+
+3. **Large memory context**
+
+   **Solution:**
+   ```
+   Node "Simple Memory"
+   → contextWindowLength: reduce from 10 to 5
+   
+   This speeds up processing but reduces context memory
+   ```
+
+4. **Complex AI prompt**
+
+   **Solution:**
+   ```
+   Node "Calendar AI Agent" → promptType
+   → Simplify System Prompt (remove unnecessary instructions)
+   ```
+
+---
+
+#### 8. Events Created in Wrong Timezone
+
+**Symptoms:**
+- Create at 3 PM, appears at 12 PM (or vice versa)
+- Time shifted by N hours
+
+**Cause:** Wrong timezone
+
+**Diagnosis:**
+
+1. **Check Google Calendar timezone:**
+   ```
+   calendar.google.com → Settings → General → Time zone
+   ```
+
+2. **Check n8n timezone:**
+   ```
+   n8n → Workflow Settings → Timezone
+   ```
+
+3. **Check HTTP Request (Get Timezone):**
+   ```
+   Node "HTTP Request1" → Test step
+   → Check response: {"value": "Europe/Moscow"}
+   ```
+
+**Solution:**
+
+1. **Set correct timezone in n8n:**
+   ```
+   Workflow Settings → Timezone → select your timezone
+   E.g., Europe/Moscow, America/New_York, Asia/Tokyo
+   ```
+
+2. **Update default timezone in prompt:**
+   ```
+   Node "Calendar AI Agent" → text
+   
+   Find line:
+   "Default timezone: Use HTTP Request tool to fetch user's timezone"
+   
+   Replace with:
+   "Default timezone: America/New_York (or your timezone)"
+   ```
+
+3. **Use ISO 8601 with timezone:**
+   ```
+   When creating events AI should use:
+   ✅ "2025-01-02T15:00:00+03:00"
+   ❌ "2025-01-02T15:00:00"
+   ```
+
+---
+
+### Advanced Diagnostics
+
+#### Checking n8n Logs
+
+**Self-hosted n8n:**
+
+```bash
+# Docker
+docker logs n8n
+
+# npm
+~/.n8n/logs/n8n.log
+
+# Filter by errors
+docker logs n8n 2>&1 | grep ERROR
+```
+
+**n8n Cloud:**
+
+```
+Dashboard → Executions → Filter: "Failed only"
+```
+
+---
+
+#### Testing Individual Nodes
+
+1. **Open workflow in n8n**
+
+2. **Select node to test**
+
+3. **Click "Execute Node"** (▶️ icon)
+
+4. **Check input and output data:**
+   ```
+   Input → JSON → verify incoming data
+   Output → JSON → verify result
+   ```
+
+5. **If error:**
+   ```
+   Output → Error → read error message
+   ```
+
+---
+
+#### Debug Mode
+
+**Enable:**
+
+```
+n8n → Workflow Settings → Execution Settings
+→ Save Execution Progress: ON
+→ Save Data On Success Execution: ON
+→ Save Data On Error Execution: ON
+```
+
+**Usage:**
+
+```
+Executions → Select execution
+→ Click on each node
+→ View detailed data at each step
+```
+
+---
+
+### Common Error Codes
+
+| Error Code | Cause | Solution |
+|------------|-------|----------|
+| `401 Unauthorized` | Invalid API key/token | Recheck credentials |
+| `403 Forbidden` | No access rights | Check scopes/permissions |
+| `404 Not Found` | Event/resource not found | Check Event ID |
+| `429 Too Many Requests` | Rate limit exceeded | Wait or increase limits |
+| `500 Internal Server Error` | API-side issue | Check status pages |
+| `ECONNREFUSED` | n8n can't connect to API | Check internet and firewall |
+| `ETIMEDOUT` | Connection timeout | Increase timeout in node settings |
+
+---
+
+### Getting Help
+
+If issue persists:
+
+1. **Gather information:**
+   ```
+   - n8n version: Settings → About
+   - Error text: Executions → Error message
+   - Screenshot of node with error
+   - Workflow version: from JSON file
+   ```
+
+2. **Check documentation:**
+   - [n8n Docs](https://docs.n8n.io/)
+   - [OpenAI API Docs](https://platform.openai.com/docs/)
+   - [Google Calendar API Docs](https://developers.google.com/calendar/api)
+   - [Telegram Bot API Docs](https://core.telegram.org/bots/api)
+
+3. **Community:**
+   - [n8n Community Forum](https://community.n8n.io/)
+   - [GitHub Issues](https://github.com/n8n-io/n8n/issues)
+
+4. **Contact:**
+   - Telegram: [@khanalytiq](https://t.me/khanalytiq)
+   - GitHub Issues: [this repository]
 
 ---
 
@@ -531,251 +1060,3 @@ Executions → Выберите execution
 4. **Контакт:**
    - Telegram: [@khanalytiq](https://t.me/khanalytiq)
    - GitHub Issues: [этот репозиторий]
-
----
-
-## 🇬🇧 English Version
-
-### Common Issues and Solutions
-
-#### 1. Bot Doesn't Respond
-
-**Symptoms:**
-- Send message to Telegram but no response
-- No "typing..." indicator
-
-**Diagnosis:**
-
-1. **Check workflow status:**
-   ```
-   n8n → Open workflow → Check status (top right)
-   ```
-   ✅ Should be: `Active` (green button)
-   ❌ If `Inactive` → Click to activate
-
-2. **Check execution logs:**
-   ```
-   n8n → Executions (bottom left tab) → Recent executions
-   ```
-   - If no new executions → Telegram webhook issue
-   - If executions with errors → check error details
-
-3. **Verify Owner ID:**
-   ```
-   Node "Owner Verification" → Condition → rightValue: your Telegram ID
-   ```
-   Get your ID via [@userinfobot](https://t.me/userinfobot)
-
-**Solution:**
-
-```bash
-# Try deactivating and reactivating workflow:
-1. Click "Active" → "Inactive"
-2. Wait 5 seconds
-3. Click "Inactive" → "Active"
-```
-
----
-
-#### 2. "Unauthorized" Error
-
-**Symptom:**
-```
-⛔ Unfortunately, this bot is for personal use only.
-```
-
-**Cause:** Your Telegram ID doesn't match ID in Owner Verification
-
-**Solution:**
-
-1. **Get your Telegram ID:**
-   - Message [@userinfobot](https://t.me/userinfobot)
-   - Copy your ID (e.g., `123456789`)
-
-2. **Update Owner Verification:**
-   ```
-   Node "Owner Verification" → Rule "boss" → Condition
-   rightValue: replace "331119294" with your ID
-   ```
-
-3. **Update Memory Buffer:**
-   ```
-   Node "Simple Memory" → sessionKey
-   Replace "331119294" with your ID
-   ```
-
-4. **Update Error Notification:**
-   ```
-   Node "Error Notification" → chatId
-   Replace "331119294" with your ID
-   ```
-
-5. **Save workflow** (Ctrl+S or Cmd+S)
-
----
-
-#### 3. OpenAI API Error
-
-**Symptom:**
-```
-Error: Incorrect API key provided
-```
-
-**Possible Causes:**
-
-1. **Invalid API key**
-
-   **Solution:**
-   ```
-   n8n → Credentials → OpenAI API
-   → Verify key starts with "sk-proj-" or "sk-"
-   → If incorrect → create new at platform.openai.com/api-keys
-   ```
-
-2. **No balance on OpenAI account**
-
-   **Check:**
-   ```
-   platform.openai.com → Settings → Billing → Check balance
-   ```
-   
-   **Solution:**
-   ```
-   Add payment method → Add credits (minimum $5)
-   ```
-
-3. **Rate limit exceeded**
-
-   **Error:**
-   ```
-   Error: Rate limit reached for gpt-4-mini
-   ```
-   
-   **Solution:**
-   ```
-   Wait a few minutes or:
-   platform.openai.com → Settings → Limits
-   → Increase limits (if available)
-   ```
-
----
-
-#### 4. Google Calendar API Error
-
-**Symptom:**
-```
-Error: Invalid Credentials
-```
-
-**Solutions:**
-
-1. **Credential not authorized**
-
-   ```
-   n8n → Find Google Calendar node
-   → Credential → Click "Reconnect"
-   → Sign in to Google account
-   → Allow Calendar access
-   ```
-
-2. **Google Calendar API not enabled**
-
-   ```
-   1. console.cloud.google.com
-   2. Select your project
-   3. APIs & Services → Library
-   4. Find "Google Calendar API"
-   5. Click "Enable"
-   ```
-
----
-
-#### 5. Voice Messages Not Recognized
-
-**Possible Causes:**
-
-1. **File too large**
-
-   **Limit:** 25 MB (Telegram) and 25 MB (OpenAI Whisper)
-   
-   **Solution:**
-   ```
-   Send shorter voice messages (up to 2-3 minutes)
-   ```
-
-2. **Whisper API error**
-
-   **Solution:**
-   ```
-   - Check audio quality (not too quiet)
-   - Verify OpenAI balance
-   - Check Whisper rate limits (50 req/min)
-   ```
-
----
-
-#### 6. Events Created in Wrong Timezone
-
-**Symptom:**
-- Create at 3 PM, appears at 12 PM (or vice versa)
-- Time shifted by N hours
-
-**Solution:**
-
-1. **Set correct timezone in n8n:**
-   ```
-   Workflow Settings → Timezone → select your timezone
-   E.g., Europe/Moscow, America/New_York, Asia/Tokyo
-   ```
-
-2. **Update default timezone in prompt:**
-   ```
-   Node "Calendar AI Agent" → text
-   
-   Find line:
-   "Default timezone: Use HTTP Request tool to fetch user's timezone"
-   
-   Replace with:
-   "Default timezone: America/New_York (or your timezone)"
-   ```
-
----
-
-### Getting Help
-
-If issue persists:
-
-1. **Gather information:**
-   ```
-   - n8n version: Settings → About
-   - Error text: Executions → Error message
-   - Screenshot of node with error
-   - Workflow version: from JSON file
-   ```
-
-2. **Check documentation:**
-   - [n8n Docs](https://docs.n8n.io/)
-   - [OpenAI API Docs](https://platform.openai.com/docs/)
-   - [Google Calendar API Docs](https://developers.google.com/calendar/api)
-
-3. **Community:**
-   - [n8n Community Forum](https://community.n8n.io/)
-   - [GitHub Issues](https://github.com/n8n-io/n8n/issues)
-
-4. **Contact:**
-   - Telegram: [@khanalytiq](https://t.me/khanalytiq)
-   - GitHub Issues: [this repository]
-
----
-
-### Common Error Codes
-
-| Error Code | Cause | Solution |
-|------------|-------|----------|
-| `401 Unauthorized` | Invalid API key/token | Recheck credentials |
-| `403 Forbidden` | No access rights | Check scopes/permissions |
-| `404 Not Found` | Event/resource not found | Check Event ID |
-| `429 Too Many Requests` | Rate limit exceeded | Wait or increase limits |
-| `500 Internal Server Error` | API-side issue | Check status pages |
-| `ETIMEDOUT` | Connection timeout | Increase timeout in settings |
-

@@ -1,6 +1,340 @@
-# 🛠️ Инструкция по настройке / Setup Guide
+# 🛠️ Setup Guide / Инструкция по настройке
 
-[🇷🇺 Русская версия](#-русская-версия) | [🇬🇧 English Version](#-english-version)
+[🇬🇧 English](#-english-version) | [🇷🇺 Русский](#-русская-версия)
+
+---
+
+## 🇬🇧 English Version
+
+### Prerequisites
+
+Before starting, ensure you have:
+- ✅ Installed [n8n](https://n8n.io/) (version 1.0+)
+- ✅ Active [OpenAI](https://platform.openai.com/) account with API key
+- ✅ [Google](https://google.com/) account for Calendar API
+- ✅ Telegram account to create a bot
+
+### Step 1: Install n8n
+
+#### Option A: Docker (recommended)
+
+```bash
+docker run -it --rm \
+  --name n8n \
+  -p 5678:5678 \
+  -v ~/.n8n:/home/node/.n8n \
+  docker.n8n.io/n8nio/n8n
+```
+
+#### Option B: npm
+
+```bash
+npm install n8n -g
+n8n start
+```
+
+#### Option C: n8n Cloud
+
+Sign up at [n8n.cloud](https://n8n.cloud/) and get a ready instance.
+
+After launch, open browser: `http://localhost:5678`
+
+---
+
+### Step 2: Create Telegram Bot
+
+1. **Open Telegram** and find [@BotFather](https://t.me/BotFather)
+
+2. **Create new bot:**
+   ```
+   /newbot
+   ```
+
+3. **Follow instructions:**
+   - Enter bot name (e.g., `My Calendar Assistant`)
+   - Enter bot username (e.g., `my_calendar_bot`)
+
+4. **Save the token:**
+   ```
+   Token: 1234567890:ABCdefGHIjklMNOpqrsTUVwxyz
+   ```
+
+5. **Get your Telegram ID:**
+   - Message [@userinfobot](https://t.me/userinfobot)
+   - Copy your ID (e.g., `331119294`)
+
+---
+
+### Step 3: Get OpenAI API Key
+
+1. **Go to** [platform.openai.com](https://platform.openai.com/)
+
+2. **Sign in** or create account
+
+3. **Navigate to API Keys:**
+   - Click profile → "View API Keys"
+   - Or direct link: [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+
+4. **Create new key:**
+   - Click "Create new secret key"
+   - Name it (e.g., `n8n-calendar-bot`)
+   - Copy key: `sk-proj-...`
+
+5. **Add billing:**
+   - Minimum $5 to start
+   - GPT-4.1-mini costs ~$0.15 per 1M tokens (input)
+
+⚠️ **Important:** Save the key securely. You won't see it again!
+
+---
+
+### Step 4: Setup Google Calendar API
+
+#### 4.1 Create Google Cloud Project
+
+1. **Go to** [console.cloud.google.com](https://console.cloud.google.com/)
+
+2. **Create new project:**
+   - Click project dropdown (top)
+   - "New Project"
+   - Name: `Calendar Bot`
+   - Click "Create"
+
+#### 4.2 Enable Google Calendar API
+
+1. **In sidebar** select "APIs & Services" → "Library"
+
+2. **Search for** "Google Calendar API"
+
+3. **Click** "Enable"
+
+#### 4.3 Create OAuth2 Credentials
+
+1. **Go to** "APIs & Services" → "Credentials"
+
+2. **Configure OAuth consent screen:**
+   - Click "Configure Consent Screen"
+   - Select "External"
+   - Fill required fields:
+     - App name: `Calendar Bot`
+     - User support email: your email
+     - Developer contact: your email
+   - Click "Save and Continue"
+
+3. **Add scopes:**
+   - Click "Add or Remove Scopes"
+   - Find and add:
+     - `https://www.googleapis.com/auth/calendar`
+     - `https://www.googleapis.com/auth/calendar.events`
+   - Click "Update" → "Save and Continue"
+
+4. **Add test users:**
+   - Click "Add Users"
+   - Enter your Gmail: `your.email@gmail.com`
+   - Click "Save and Continue"
+
+5. **Create OAuth2 Client ID:**
+   - Return to "Credentials"
+   - Click "Create Credentials" → "OAuth client ID"
+   - Application type: "Web application"
+   - Name: `n8n Calendar Bot`
+   - Authorized redirect URIs:
+     ```
+     http://localhost:5678/rest/oauth2-credential/callback
+     ```
+   - Click "Create"
+
+6. **Save credentials:**
+   - Client ID: `xxxxx.apps.googleusercontent.com`
+   - Client Secret: `GOCSPX-xxxxx`
+
+---
+
+### Step 5: Import Workflow to n8n
+
+1. **Download workflow file:**
+   ```bash
+   git clone https://github.com/yourusername/google-calendar-ai-tg-assistant.git
+   cd google-calendar-ai-tg-assistant
+   ```
+
+2. **Open n8n** in browser: `http://localhost:5678`
+
+3. **Import workflow:**
+   - Click menu "☰" (top left)
+   - Select "Import from File"
+   - Choose file: `💀 - Google Calendar + TG + AI assistant v2.json`
+   - Click "Import"
+
+---
+
+### Step 6: Configure Credentials in n8n
+
+#### 6.1 Telegram API Credentials
+
+1. **In workflow** find any Telegram node (e.g., "Telegram Trigger")
+
+2. **Click Credential field:**
+   - "Select Credential" → "+ Create New"
+
+3. **Fill in:**
+   - Credential Name: `@tgcalobot` (or your name)
+   - Access Token: `<your token from BotFather>`
+
+4. **Save:** "Save"
+
+5. **Apply to all Telegram nodes**
+
+#### 6.2 OpenAI API Credentials
+
+1. **Find node** "OpenAI Chat Model" or "Transcribe a recording"
+
+2. **Create new Credential:**
+   - "Select Credential" → "+ Create New"
+
+3. **Fill in:**
+   - Credential Name: `OpenAI Account`
+   - API Key: `sk-proj-xxxxx`
+
+4. **Save and apply** to all OpenAI nodes
+
+#### 6.3 Google Calendar OAuth2 Credentials
+
+1. **Find node** "Create an event in Google Calendar"
+
+2. **Create new Credential:**
+   - "Select Credential" → "+ Create New"
+
+3. **Fill in:**
+   - Credential Name: `Google Calendar - Your Email`
+   - Client ID: `<from Google Cloud Console>`
+   - Client Secret: `<from Google Cloud Console>`
+
+4. **Authorize:**
+   - Click "Connect my account"
+   - Sign in to Google account
+   - Allow Calendar access
+
+5. **Save and apply** to all Google Calendar nodes
+
+---
+
+### Step 7: Configure Owner ID
+
+Replace owner ID with yours in all necessary places:
+
+#### 7.1 Owner Verification (Switch node)
+
+1. **Open node** "Owner Verification"
+
+2. **Find condition** with ID `331119294`
+
+3. **Replace with your Telegram ID** in both conditions
+
+#### 7.2 Simple Memory (Memory Buffer node)
+
+1. **Open node** "Simple Memory"
+
+2. **Find field** `sessionKey`
+
+3. **Replace** `331119294` with your Telegram ID
+
+#### 7.3 Error Notification (Telegram node)
+
+1. **Open node** "Error Notification"
+
+2. **Find field** `chatId`
+
+3. **Replace** `331119294` with your Telegram ID
+
+---
+
+### Step 8: Testing
+
+1. **Activate workflow:**
+   - Top right corner toggle "Inactive" → "Active"
+
+2. **Open your bot** in Telegram
+
+3. **Send test message:**
+   ```
+   Hello!
+   ```
+
+4. **Check response:**
+   - Bot should respond with greeting
+   - If not — check logs in n8n ("Executions" tab)
+
+5. **Test event creation:**
+   ```
+   Create a meeting tomorrow at 3 PM
+   ```
+
+6. **Check Google Calendar:**
+   - Event should appear in your calendar
+
+---
+
+### 🎉 Done!
+
+Your AI Calendar Assistant is ready to use!
+
+**Test commands:**
+- "Create meeting with John tomorrow at 2 PM"
+- "What do I have this week?"
+- "Move meeting to 4 PM"
+- "Delete Monday's meeting"
+- 🎤 Send a voice message
+
+---
+
+### 🐛 Troubleshooting
+
+#### Bot doesn't respond
+
+**Problem:** Sent message but no response
+
+**Solution:**
+1. Check if workflow is active (green "Active" button)
+2. Check logs: "Executions" tab in n8n
+3. Ensure your Telegram ID is correct in "Owner Verification"
+4. Verify Telegram webhook is set (should be automatic)
+
+#### "Unauthorized" error
+
+**Problem:** Bot responds "Unfortunately, this bot is for personal use only"
+
+**Solution:**
+- You forgot to replace Owner ID with yours
+- Check "Owner Verification" node and replace `331119294`
+
+#### OpenAI API error
+
+**Problem:** "Error: Incorrect API key provided"
+
+**Solution:**
+1. Check API key in credentials
+2. Ensure you have balance on OpenAI account
+3. Verify key is active (not revoked)
+
+#### Google Calendar error
+
+**Problem:** "Error: Invalid credentials"
+
+**Solution:**
+1. Re-authorize Google Calendar credential
+2. Check that API is enabled in Google Cloud Console
+3. Ensure you added yourself as "test user" in OAuth consent screen
+
+---
+
+### 📞 Support
+
+If you have questions or need help:
+- 📧 Open an issue on GitHub
+- 💬 Contact: [@khanalytiq](https://t.me/khanalytiq)
+
+**⭐ If this project is useful, please star it!**
 
 ---
 
@@ -403,335 +737,10 @@ git pull origin main
 
 ---
 
-## 🇬🇧 English Version
+### 📞 Поддержка
 
-### Prerequisites
+Если у вас есть вопросы или нужна помощь:
+- 📧 Откройте issue на GitHub
+- 💬 Контакт: [@khanalytiq](https://t.me/khanalytiq)
 
-Before starting, ensure you have:
-- ✅ Installed [n8n](https://n8n.io/) (version 1.0+)
-- ✅ Active [OpenAI](https://platform.openai.com/) account with API key
-- ✅ [Google](https://google.com/) account for Calendar API
-- ✅ Telegram account to create a bot
-
-### Step 1: Install n8n
-
-#### Option A: Docker (recommended)
-
-```bash
-docker run -it --rm \
-  --name n8n \
-  -p 5678:5678 \
-  -v ~/.n8n:/home/node/.n8n \
-  docker.n8n.io/n8nio/n8n
-```
-
-#### Option B: npm
-
-```bash
-npm install n8n -g
-n8n start
-```
-
-#### Option C: n8n Cloud
-
-Sign up at [n8n.cloud](https://n8n.cloud/) and get a ready instance.
-
-After launch, open browser: `http://localhost:5678`
-
----
-
-### Step 2: Create Telegram Bot
-
-1. **Open Telegram** and find [@BotFather](https://t.me/BotFather)
-
-2. **Create new bot:**
-   ```
-   /newbot
-   ```
-
-3. **Follow instructions:**
-   - Enter bot name (e.g., `My Calendar Assistant`)
-   - Enter bot username (e.g., `my_calendar_bot`)
-
-4. **Save the token:**
-   ```
-   Token: 1234567890:ABCdefGHIjklMNOpqrsTUVwxyz
-   ```
-
-5. **Get your Telegram ID:**
-   - Message [@userinfobot](https://t.me/userinfobot)
-   - Copy your ID (e.g., `331119294`)
-
----
-
-### Step 3: Get OpenAI API Key
-
-1. **Go to** [platform.openai.com](https://platform.openai.com/)
-
-2. **Sign in** or create account
-
-3. **Navigate to API Keys:**
-   - Click profile → "View API Keys"
-   - Or direct link: [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
-
-4. **Create new key:**
-   - Click "Create new secret key"
-   - Name it (e.g., `n8n-calendar-bot`)
-   - Copy key: `sk-proj-...`
-
-5. **Add billing:**
-   - Minimum $5 to start
-   - GPT-4.1-mini costs ~$0.15 per 1M tokens (input)
-
-⚠️ **Important:** Save the key securely. You won't see it again!
-
----
-
-### Step 4: Setup Google Calendar API
-
-#### 4.1 Create Google Cloud Project
-
-1. **Go to** [console.cloud.google.com](https://console.cloud.google.com/)
-
-2. **Create new project:**
-   - Click project dropdown (top)
-   - "New Project"
-   - Name: `Calendar Bot`
-   - Click "Create"
-
-#### 4.2 Enable Google Calendar API
-
-1. **In sidebar** select "APIs & Services" → "Library"
-
-2. **Search for** "Google Calendar API"
-
-3. **Click** "Enable"
-
-#### 4.3 Create OAuth2 Credentials
-
-1. **Go to** "APIs & Services" → "Credentials"
-
-2. **Configure OAuth consent screen:**
-   - Click "Configure Consent Screen"
-   - Select "External"
-   - Fill required fields:
-     - App name: `Calendar Bot`
-     - User support email: your email
-     - Developer contact: your email
-   - Click "Save and Continue"
-
-3. **Add scopes:**
-   - Click "Add or Remove Scopes"
-   - Find and add:
-     - `https://www.googleapis.com/auth/calendar`
-     - `https://www.googleapis.com/auth/calendar.events`
-   - Click "Update" → "Save and Continue"
-
-4. **Add test users:**
-   - Click "Add Users"
-   - Enter your Gmail: `your.email@gmail.com`
-   - Click "Save and Continue"
-
-5. **Create OAuth2 Client ID:**
-   - Return to "Credentials"
-   - Click "Create Credentials" → "OAuth client ID"
-   - Application type: "Web application"
-   - Name: `n8n Calendar Bot`
-   - Authorized redirect URIs:
-     ```
-     http://localhost:5678/rest/oauth2-credential/callback
-     ```
-   - Click "Create"
-
-6. **Save credentials:**
-   - Client ID: `xxxxx.apps.googleusercontent.com`
-   - Client Secret: `GOCSPX-xxxxx`
-
----
-
-### Step 5: Import Workflow to n8n
-
-1. **Download workflow file:**
-   ```bash
-   git clone https://github.com/yourusername/google-calendar-ai-tg-assistant.git
-   cd google-calendar-ai-tg-assistant
-   ```
-
-2. **Open n8n** in browser: `http://localhost:5678`
-
-3. **Import workflow:**
-   - Click menu "☰" (top left)
-   - Select "Import from File"
-   - Choose file: `💀 - Google Calendar + TG + AI assistant v2.json`
-   - Click "Import"
-
----
-
-### Step 6: Configure Credentials in n8n
-
-#### 6.1 Telegram API Credentials
-
-1. **In workflow** find any Telegram node (e.g., "Telegram Trigger")
-
-2. **Click Credential field:**
-   - "Select Credential" → "+ Create New"
-
-3. **Fill in:**
-   - Credential Name: `@tgcalobot` (or your name)
-   - Access Token: `<your token from BotFather>`
-
-4. **Save:** "Save"
-
-5. **Apply to all Telegram nodes**
-
-#### 6.2 OpenAI API Credentials
-
-1. **Find node** "OpenAI Chat Model" or "Transcribe a recording"
-
-2. **Create new Credential:**
-   - "Select Credential" → "+ Create New"
-
-3. **Fill in:**
-   - Credential Name: `OpenAI Account`
-   - API Key: `sk-proj-xxxxx`
-
-4. **Save and apply** to all OpenAI nodes
-
-#### 6.3 Google Calendar OAuth2 Credentials
-
-1. **Find node** "Create an event in Google Calendar"
-
-2. **Create new Credential:**
-   - "Select Credential" → "+ Create New"
-
-3. **Fill in:**
-   - Credential Name: `Google Calendar - Your Email`
-   - Client ID: `<from Google Cloud Console>`
-   - Client Secret: `<from Google Cloud Console>`
-
-4. **Authorize:**
-   - Click "Connect my account"
-   - Sign in to Google account
-   - Allow Calendar access
-
-5. **Save and apply** to all Google Calendar nodes
-
----
-
-### Step 7: Configure Owner ID
-
-Replace owner ID with yours in all necessary places:
-
-#### 7.1 Owner Verification (Switch node)
-
-1. **Open node** "Owner Verification"
-
-2. **Find condition** with ID `331119294`
-
-3. **Replace with your Telegram ID** in both conditions
-
-#### 7.2 Simple Memory (Memory Buffer node)
-
-1. **Open node** "Simple Memory"
-
-2. **Find field** `sessionKey`
-
-3. **Replace** `331119294` with your Telegram ID
-
-#### 7.3 Error Notification (Telegram node)
-
-1. **Open node** "Error Notification"
-
-2. **Find field** `chatId`
-
-3. **Replace** `331119294` with your Telegram ID
-
----
-
-### Step 8: Testing
-
-1. **Activate workflow:**
-   - Top right corner toggle "Inactive" → "Active"
-
-2. **Open your bot** in Telegram
-
-3. **Send test message:**
-   ```
-   Hello!
-   ```
-
-4. **Check response:**
-   - Bot should respond with greeting
-   - If not — check logs in n8n ("Executions" tab)
-
-5. **Test event creation:**
-   ```
-   Create a meeting tomorrow at 3 PM
-   ```
-
-6. **Check Google Calendar:**
-   - Event should appear in your calendar
-
----
-
-### 🎉 Done!
-
-Your AI Calendar Assistant is ready to use!
-
-**Test commands:**
-- "Create meeting with John tomorrow at 2 PM"
-- "What do I have this week?"
-- "Move meeting to 4 PM"
-- "Delete Monday's meeting"
-- 🎤 Send a voice message
-
----
-
-### 🐛 Troubleshooting
-
-#### Bot doesn't respond
-
-**Problem:** Sent message but no response
-
-**Solution:**
-1. Check if workflow is active (green "Active" button)
-2. Check logs: "Executions" tab in n8n
-3. Ensure your Telegram ID is correct in "Owner Verification"
-4. Verify Telegram webhook is set (should be automatic)
-
-#### "Unauthorized" error
-
-**Problem:** Bot responds "Unfortunately, this bot is for personal use only"
-
-**Solution:**
-- You forgot to replace Owner ID with yours
-- Check "Owner Verification" node and replace `331119294`
-
-#### OpenAI API error
-
-**Problem:** "Error: Incorrect API key provided"
-
-**Solution:**
-1. Check API key in credentials
-2. Ensure you have balance on OpenAI account
-3. Verify key is active (not revoked)
-
-#### Google Calendar error
-
-**Problem:** "Error: Invalid credentials"
-
-**Solution:**
-1. Re-authorize Google Calendar credential
-2. Check that API is enabled in Google Cloud Console
-3. Ensure you added yourself as "test user" in OAuth consent screen
-
----
-
-### 📞 Support
-
-If you have questions or need help:
-- 📧 Open an issue on GitHub
-- 💬 Contact: [@khanalytiq](https://t.me/khanalytiq)
-
-**⭐ If this project is useful, please star it!**
-
+**⭐ Если проект оказался полезным, поставьте звезду!**

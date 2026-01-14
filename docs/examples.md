@@ -1,6 +1,349 @@
-# 🎯 Примеры использования / Usage Examples
+# 🎯 Usage Examples / Примеры использования
 
-[🇷🇺 Русская версия](#-русская-версия) | [🇬🇧 English Version](#-english-version)
+[🇬🇧 English](#-english-version) | [🇷🇺 Русский](#-русская-версия)
+
+---
+
+## 🇬🇧 English Version
+
+### Basic Operations
+
+#### 1. Creating Events
+
+**Simple event:**
+```
+👤 Create a meeting tomorrow at 3 PM
+
+🤖 ✅ Created event "Meeting" for tomorrow, January 2nd at 3:00 PM
+```
+
+**With title and duration:**
+```
+👤 Create a meeting with Anna tomorrow from 2 PM to 4 PM
+
+🤖 ✅ Created event "Meeting with Anna" for tomorrow, January 2nd from 2:00 PM to 4:00 PM
+```
+
+**All day event:**
+```
+👤 Add Mary's birthday to the calendar on March 15th
+
+🤖 ✅ Created event "Mary's birthday" on March 15th (all day)
+```
+
+**Recurring event:**
+```
+👤 Create a weekly meeting on Mondays at 10 AM
+
+🤖 ✅ Created recurring event "Meeting" every Monday at 10:00 AM
+```
+
+---
+
+#### 2. Viewing Events
+
+**Today:**
+```
+👤 What do I have today?
+
+🤖 📅 You have 3 events today:
+   1. ⏰ 09:00 - Team standup (1 hour)
+   2. ⏰ 14:00 - Client meeting (2 hours)
+   3. ⏰ 18:00 - Gym (1.5 hours)
+```
+
+**This week:**
+```
+👤 Show my events for next week
+
+🤖 🗓️ Found 8 events for next week:
+
+   Monday, January 6:
+   • 10:00 - Team meeting
+   • 15:00 - Code review
+   
+   Wednesday, January 8:
+   • 11:00 - Partner call
+   • 14:00 - Project presentation
+   
+   Friday, January 10:
+   • 09:00 - Standup
+   • 16:00 - Friday meetup
+   • 19:00 - Dinner with friends
+   
+   Saturday, January 11:
+   • All day - ML Workshop
+```
+
+**Search by name:**
+```
+👤 When is my meeting with John?
+
+🤖 🔍 Found event "Meeting with John":
+   📅 Wednesday, January 8th at 3:00 PM
+```
+
+---
+
+#### 3. Updating Events
+
+**Move time:**
+```
+👤 Move meeting with Anna to 4 PM
+
+🤖 ✅ Updated event "Meeting with Anna" to 4:00 PM
+```
+
+**Change date:**
+```
+👤 Move presentation to Friday
+
+🤖 ✅ Moved "Project presentation" to Friday, January 10th at 2:00 PM
+```
+
+**Change title:**
+```
+👤 Rename "Call" to "Important meeting"
+
+🤖 ✅ Updated event name to "Important meeting"
+```
+
+---
+
+#### 4. Deleting Events
+
+**By date:**
+```
+👤 Delete meeting on Monday at 3 PM
+
+🤖 ⚠️ Found event: "Code review" - Monday, January 6th at 3:00 PM
+   Delete this event?
+
+👤 Yes
+
+🤖 ✅ Deleted event "Code review"
+```
+
+**By name:**
+```
+👤 Cancel client meeting
+
+🤖 ✅ Deleted event "Client meeting" (tomorrow at 2:00 PM)
+```
+
+---
+
+### Advanced Scenarios
+
+#### Contextual Queries
+
+**Dialog with context:**
+```
+👤 Create a meeting with Sergey tomorrow at 3 PM
+
+🤖 ✅ Created event "Meeting with Sergey" for tomorrow at 3:00 PM
+
+👤 Make it an hour later
+
+🤖 ✅ Moved meeting to 4:00 PM
+
+👤 Add a reminder 30 minutes before
+
+🤖 ✅ Added reminder 30 minutes before the event
+
+👤 What's scheduled?
+
+🤖 📅 Meeting with Sergey
+   📍 Tomorrow, January 2nd at 4:00 PM
+   ⏰ Reminder 30 minutes before
+```
+
+---
+
+#### Natural Language
+
+**Relative dates:**
+```
+👤 Add meeting in two days at noon
+
+🤖 ✅ Created event "Meeting" on January 3rd at 12:00 PM
+
+👤 Schedule call day after tomorrow morning
+
+🤖 ✅ Created event "Call" on January 3rd at 9:00 AM
+
+👤 Create event for next Friday evening
+
+🤖 ✅ Created event on January 10th at 6:00 PM
+```
+
+**Time descriptions:**
+```
+👤 Meeting after lunch
+
+🤖 ✅ Created event "Meeting" for today at 2:00 PM
+
+👤 Call early morning
+
+🤖 ✅ Created event "Call" for tomorrow at 7:00 AM
+
+👤 Dinner late evening
+
+🤖 ✅ Created event "Dinner" for today at 9:00 PM
+```
+
+---
+
+#### Batch Operations
+
+**Clear day:**
+```
+👤 Cancel all meetings tomorrow
+
+🤖 🔍 Found 4 events for tomorrow:
+   1. 09:00 - Standup
+   2. 11:00 - Code review
+   3. 15:00 - Client meeting
+   4. 18:00 - Gym
+   
+   Delete all these events?
+
+👤 Yes, except gym
+
+🤖 ✅ Deleted 3 events. Kept "Gym"
+```
+
+**Bulk move:**
+```
+👤 Move all meetings from Monday to Tuesday
+
+🤖 ✅ Moved 3 events from Monday to Tuesday:
+   • Team meeting → Tuesday 10:00 AM
+   • Call → Tuesday 11:00 AM
+   • Presentation → Tuesday 3:00 PM
+```
+
+---
+
+#### Voice Commands 🎤
+
+**Create:**
+```
+🎤 "Create a meeting with director day after tomorrow at three PM"
+
+🤖 ✅ Created event "Meeting with director" on January 3rd at 3:00 PM
+```
+
+**Search:**
+```
+🎤 "What do I have this week"
+
+🤖 🗓️ You have 12 events this week:
+   [event list...]
+```
+
+**Edit:**
+```
+🎤 "Move meeting with Ivanov to four o'clock"
+
+🤖 ✅ Moved "Meeting with Ivanov" to 4:00 PM
+```
+
+---
+
+### Complex Queries
+
+#### Smart Planning
+
+**Find free time:**
+```
+👤 When do I have free time this week?
+
+🤖 🔍 Analyzed your calendar. Free slots:
+   
+   Monday: 11:00-14:00 (3 hours)
+   Tuesday: entire day free
+   Wednesday: 09:00-11:00, 16:00-18:00
+   Thursday: 14:00-17:00
+   Friday: 11:00-15:00
+```
+
+**Conflicts:**
+```
+👤 Create meeting tomorrow at 3 PM
+
+🤖 ⚠️ Tomorrow at 3 PM is already scheduled:
+   "Client meeting" (2:00-4:00 PM)
+   
+   Create event anyway or choose different time?
+
+👤 Suggest another time
+
+🤖 💡 Free slots tomorrow:
+   • 11:00-14:00
+   • 16:30-18:00
+   • After 7:00 PM
+   
+   When works best?
+```
+
+---
+
+#### Analytics
+
+**Statistics:**
+```
+👤 How many meetings do I have this week?
+
+🤖 📊 Week statistics (January 6-12):
+   • Total events: 15
+   • Meetings: 8
+   • Work tasks: 5
+   • Personal: 2
+   
+   Busiest day: Wednesday (5 events)
+   Free day: Sunday
+```
+
+---
+
+### Error Handling
+
+#### Ambiguity
+
+```
+👤 Create a meeting tomorrow
+
+🤖 ❓ Please clarify:
+   • What time?
+   • With whom?
+   • How long?
+
+👤 At 3 PM with Petrov for an hour
+
+🤖 ✅ Created event "Meeting with Petrov" for tomorrow 3:00-4:00 PM
+```
+
+#### Non-existent event
+
+```
+👤 Delete meeting with John
+
+🤖 🔍 Didn't find event "Meeting with John" in calendar.
+   
+   Did you mean:
+   • "Meeting with Ivan" - tomorrow at 3:00 PM
+   • "Call John" - Friday at 11:00 AM
+```
+
+#### Past date
+
+```
+👤 Create meeting yesterday
+
+🤖 ⚠️ Cannot create event in the past.
+   Did you mean "tomorrow" or "today"?
+```
 
 ---
 
@@ -385,189 +728,4 @@
 
 ---
 
-## 🇬🇧 English Version
-
-### Basic Operations
-
-#### 1. Creating Events
-
-**Simple event:**
-```
-👤 Create a meeting tomorrow at 3 PM
-
-🤖 ✅ Created event "Meeting" for tomorrow, January 2nd at 3:00 PM
-```
-
-**With title and duration:**
-```
-👤 Create a meeting with Anna tomorrow from 2 PM to 4 PM
-
-🤖 ✅ Created event "Meeting with Anna" for tomorrow, January 2nd from 2:00 PM to 4:00 PM
-```
-
-**All day event:**
-```
-👤 Add Mary's birthday to the calendar on March 15th
-
-🤖 ✅ Created event "Mary's birthday" on March 15th (all day)
-```
-
----
-
-#### 2. Viewing Events
-
-**Today:**
-```
-👤 What do I have today?
-
-🤖 📅 You have 3 events today:
-   1. ⏰ 09:00 - Team standup (1 hour)
-   2. ⏰ 14:00 - Client meeting (2 hours)
-   3. ⏰ 18:00 - Gym (1.5 hours)
-```
-
-**This week:**
-```
-👤 Show my events for next week
-
-🤖 🗓️ Found 8 events for next week:
-
-   Monday, January 6:
-   • 10:00 - Team meeting
-   • 15:00 - Code review
-   
-   Wednesday, January 8:
-   • 11:00 - Partner call
-   • 14:00 - Project presentation
-   
-   Friday, January 10:
-   • 09:00 - Standup
-   • 16:00 - Friday meetup
-   • 19:00 - Dinner with friends
-   
-   Saturday, January 11:
-   • All day - ML Workshop
-```
-
----
-
-#### 3. Updating Events
-
-**Move time:**
-```
-👤 Move meeting with Anna to 4 PM
-
-🤖 ✅ Updated event "Meeting with Anna" to 4:00 PM
-```
-
-**Change date:**
-```
-👤 Move presentation to Friday
-
-🤖 ✅ Moved "Project presentation" to Friday, January 10th at 2:00 PM
-```
-
----
-
-#### 4. Deleting Events
-
-**By date:**
-```
-👤 Delete meeting on Monday at 3 PM
-
-🤖 ⚠️ Found event: "Code review" - Monday, January 6th at 3:00 PM
-   Delete this event?
-
-👤 Yes
-
-🤖 ✅ Deleted event "Code review"
-```
-
----
-
-### Advanced Scenarios
-
-#### Contextual Queries
-
-```
-👤 Create a meeting with Sergey tomorrow at 3 PM
-
-🤖 ✅ Created event "Meeting with Sergey" for tomorrow at 3:00 PM
-
-👤 Make it an hour later
-
-🤖 ✅ Moved meeting to 4:00 PM
-
-👤 What's scheduled?
-
-🤖 📅 Meeting with Sergey
-   📍 Tomorrow, January 2nd at 4:00 PM
-```
-
----
-
-#### Natural Language
-
-**Relative dates:**
-```
-👤 Add meeting in two days at noon
-
-🤖 ✅ Created event "Meeting" on January 3rd at 12:00 PM
-
-👤 Schedule call day after tomorrow morning
-
-🤖 ✅ Created event "Call" on January 3rd at 9:00 AM
-```
-
----
-
-#### Voice Commands 🎤
-
-```
-🎤 "Create a meeting with director day after tomorrow at three PM"
-
-🤖 ✅ Created event "Meeting with director" on January 3rd at 3:00 PM
-```
-
----
-
-### Complex Queries
-
-#### Smart Planning
-
-**Find free time:**
-```
-👤 When do I have free time this week?
-
-🤖 🔍 Analyzed your calendar. Free slots:
-   
-   Monday: 11:00-14:00 (3 hours)
-   Tuesday: entire day free
-   Wednesday: 09:00-11:00, 16:00-18:00
-   Thursday: 14:00-17:00
-   Friday: 11:00-15:00
-```
-
----
-
-### Error Handling
-
-#### Ambiguity
-
-```
-👤 Create a meeting tomorrow
-
-🤖 ❓ Please clarify:
-   • What time?
-   • With whom?
-   • How long?
-
-👤 At 3 PM with Petrov for an hour
-
-🤖 ✅ Created event "Meeting with Petrov" for tomorrow 3:00-4:00 PM
-```
-
----
-
 For more examples and use cases, check the main [README.md](../README.md)
-

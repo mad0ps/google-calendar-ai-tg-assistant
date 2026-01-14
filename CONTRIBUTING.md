@@ -1,6 +1,383 @@
 # 🤝 Contributing Guide / Руководство по участию
 
-[🇷🇺 Русская версия](#-русская-версия) | [🇬🇧 English Version](#-english-version)
+[🇬🇧 English](#-english-version) | [🇷🇺 Русский](#-русская-версия)
+
+---
+
+## 🇬🇧 English Version
+
+Thank you for your interest in the project! We welcome any contribution - from fixing typos to adding new features.
+
+### 🎯 How You Can Help
+
+**For Everyone:**
+- 🐛 Report bugs and issues
+- 💡 Suggest new features
+- 📝 Improve documentation
+- 🌍 Add translations
+- ⭐ Star the project
+
+**For Developers:**
+- 🔧 Fix bugs
+- ✨ Implement new features
+- 🧪 Write tests
+- 📊 Optimize performance
+- 🔒 Improve security
+
+---
+
+### 🚀 Getting Started
+
+#### 1. Fork and Clone
+
+```bash
+# Fork the project on GitHub (click "Fork" button)
+
+# Clone your fork
+git clone https://github.com/your-username/google-calendar-ai-tg-assistant.git
+cd google-calendar-ai-tg-assistant
+
+# Add upstream remote
+git remote add upstream https://github.com/original-author/google-calendar-ai-tg-assistant.git
+```
+
+#### 2. Setup Environment
+
+```bash
+# Install n8n (if not installed)
+npm install n8n -g
+
+# Start n8n
+n8n start
+
+# Import workflow
+# n8n → Import from File → select JSON file
+```
+
+#### 3. Create Branch
+
+```bash
+# Update main branch
+git checkout main
+git pull upstream main
+
+# Create feature branch
+git checkout -b feature/amazing-feature
+# or
+git checkout -b fix/bug-description
+```
+
+---
+
+### 📝 Development Guidelines
+
+#### Workflow Changes
+
+**When modifying n8n workflow:**
+
+1. ✅ Test all changes locally
+2. ✅ Document new nodes/features
+3. ✅ Update `docs/architecture.md` if structure changes
+4. ✅ Export workflow without credentials
+5. ✅ Verify JSON is valid
+
+**Export workflow:**
+
+```
+n8n → Workflow → Menu (☰) → Download
+→ Save as: 💀 - Google Calendar + TG + AI assistant v2.json
+```
+
+**⚠️ Important:** Remove all credentials before export:
+```
+Settings → Workflow → Remove sensitive data
+```
+
+#### Commits
+
+**Commit message format:**
+
+```
+type: brief description
+
+[optional] Detailed description
+
+[optional] Fixes #issue-number
+```
+
+**Types:**
+- `feat`: new feature
+- `fix`: bug fix
+- `docs`: documentation changes
+- `style`: formatting, typos
+- `refactor`: code refactoring
+- `test`: adding tests
+- `chore`: dependency updates, configuration
+
+**Examples:**
+
+```bash
+git commit -m "feat: add recurring events support"
+
+git commit -m "fix: timezone detection issue
+
+Timezone is now correctly detected via HTTP Request node
+instead of using default value from prompt.
+
+Fixes #42"
+
+git commit -m "docs: update examples in README"
+```
+
+---
+
+### 🐛 Reporting Bugs
+
+**Before creating Issue:**
+
+1. ✅ Check if bug hasn't been reported
+2. ✅ Ensure you're using latest version
+3. ✅ Try reproducing on clean install
+
+**Issue Template:**
+
+```markdown
+## 🐛 Bug Description
+
+Clear and concise description of the problem.
+
+## 📋 Steps to Reproduce
+
+1. Open workflow
+2. Send message '...'
+3. Click '...'
+4. See error
+
+## ✅ Expected Behavior
+
+What should have happened.
+
+## ❌ Actual Behavior
+
+What actually happened.
+
+## 🖥️ Environment
+
+- **n8n version:** 1.x.x
+- **OS:** macOS 14.1 / Ubuntu 22.04 / Windows 11
+- **Node.js version:** 18.x.x
+- **Installation type:** Docker / npm / n8n Cloud
+
+## 📸 Screenshots
+
+If applicable, add screenshots.
+
+## 📝 Logs
+
+```
+Paste relevant logs here
+```
+
+## 🔍 Additional Context
+
+Any other information about the problem.
+```
+
+---
+
+### 💡 Suggesting Features
+
+**Feature Request Template:**
+
+```markdown
+## ✨ Feature Description
+
+Clear and concise description of what you want to add.
+
+## 🎯 Problem
+
+What problem does this solve?
+Example: "It's inconvenient to [...] because [...]"
+
+## 💡 Proposed Solution
+
+How do you envision the implementation?
+
+## 🔄 Alternatives
+
+What alternative solutions have you considered?
+
+## 📋 Use Cases
+
+Specific usage examples:
+
+1. As a user, I want to [...]
+2. This will allow me to [...]
+
+## 🎨 Mockups / Examples
+
+If available, attach UI examples or code.
+
+## 🚀 Priority
+
+- [ ] Nice to have
+- [ ] Important
+- [ ] Critical
+
+## 💬 Additional Information
+
+Any other information or context.
+```
+
+---
+
+### 🔄 Pull Request Process
+
+#### 1. Before Creating PR
+
+**Checklist:**
+
+- [ ] Code works and is tested
+- [ ] Documentation updated
+- [ ] Commit messages follow guidelines
+- [ ] Branch updated with upstream/main
+- [ ] No conflicts
+- [ ] JSON workflow is valid
+- [ ] Credentials removed from export
+
+#### 2. Creating Pull Request
+
+```bash
+# Push to your fork
+git push origin feature/amazing-feature
+
+# Create PR on GitHub
+# base: main ← compare: feature/amazing-feature
+```
+
+**PR Template:**
+
+```markdown
+## 📝 Description
+
+Brief description of changes.
+
+## 🔗 Related Issues
+
+Closes #issue-number (if applicable)
+
+## 🎯 Type of Change
+
+- [ ] 🐛 Bug fix (non-breaking change)
+- [ ] ✨ New feature (non-breaking change)
+- [ ] 💥 Breaking change
+- [ ] 📝 Documentation update
+
+## ✅ Checklist
+
+- [ ] Code tested and works
+- [ ] Documentation updated
+- [ ] Commit messages correct
+- [ ] No conflicts with main
+- [ ] Credentials removed from workflow
+- [ ] Usage examples added (if new feature)
+
+## 📸 Screenshots / Examples
+
+If applicable, add screenshots or usage examples.
+
+## 🧪 How Tested
+
+Describe how you tested the changes:
+
+1. Step 1
+2. Step 2
+3. Result
+
+## 💬 Additional Information
+
+Any other information for reviewers.
+```
+
+#### 3. Code Review
+
+**Process:**
+
+1. Maintainer will review your PR
+2. Changes may be requested
+3. Make changes and push to same branch
+4. After approval, PR will be merged
+
+**Response time:**
+- Usually: 1-3 days
+- For urgent (security): 24 hours
+
+---
+
+### 🧪 Testing
+
+#### Manual Testing
+
+**Basic test scenario:**
+
+```
+1. ✅ Event creation
+   Command: "Create meeting tomorrow at 3 PM"
+   Expected: Event created in Google Calendar
+
+2. ✅ View events
+   Command: "What do I have this week?"
+   Expected: List of all events
+
+3. ✅ Update event
+   Command: "Move meeting to 4 PM"
+   Expected: Event time changed
+
+4. ✅ Delete event
+   Command: "Delete tomorrow's meeting"
+   Expected: Event deleted
+
+5. ✅ Voice message
+   Action: Send voice command
+   Expected: Transcription and execution
+
+6. ✅ Error handling
+   Action: Invalid command
+   Expected: Clear error message
+```
+
+#### Testing New Features
+
+**When adding a new feature:**
+
+1. Positive scenarios (happy path)
+2. Negative scenarios (errors, edge cases)
+3. Boundary conditions (empty values, large data)
+4. Backward compatibility
+
+---
+
+### 📚 Resources
+
+**Documentation:**
+- [n8n Documentation](https://docs.n8n.io/)
+- [Telegram Bot API](https://core.telegram.org/bots/api)
+- [Google Calendar API](https://developers.google.com/calendar/api)
+- [OpenAI API](https://platform.openai.com/docs/)
+
+**Tools:**
+- [n8n Community](https://community.n8n.io/)
+- [Markdown Guide](https://www.markdownguide.org/)
+- [Conventional Commits](https://www.conventionalcommits.org/)
+
+---
+
+### 📞 Questions?
+
+If something is unclear:
+- 💬 Ask in Issue
+- 📧 Contact: [@khanalytiq](https://t.me/khanalytiq)
+- 💬 Discuss in Discussions (if enabled)
 
 ---
 
@@ -405,265 +782,4 @@ Closes #номер-issue (если применимо)
 
 ---
 
-## 🇬🇧 English Version
-
-Thank you for your interest in the project! We welcome any contribution - from fixing typos to adding new features.
-
-### 🎯 How You Can Help
-
-**For Everyone:**
-- 🐛 Report bugs and issues
-- 💡 Suggest new features
-- 📝 Improve documentation
-- 🌍 Add translations
-- ⭐ Star the project
-
-**For Developers:**
-- 🔧 Fix bugs
-- ✨ Implement new features
-- 🧪 Write tests
-- 📊 Optimize performance
-- 🔒 Improve security
-
----
-
-### 🚀 Getting Started
-
-#### 1. Fork and Clone
-
-```bash
-# Fork the project on GitHub (click "Fork" button)
-
-# Clone your fork
-git clone https://github.com/your-username/google-calendar-ai-tg-assistant.git
-cd google-calendar-ai-tg-assistant
-
-# Add upstream remote
-git remote add upstream https://github.com/original-author/google-calendar-ai-tg-assistant.git
-```
-
-#### 2. Setup Environment
-
-```bash
-# Install n8n (if not installed)
-npm install n8n -g
-
-# Start n8n
-n8n start
-
-# Import workflow
-# n8n → Import from File → select JSON file
-```
-
-#### 3. Create Branch
-
-```bash
-# Update main branch
-git checkout main
-git pull upstream main
-
-# Create feature branch
-git checkout -b feature/amazing-feature
-# or
-git checkout -b fix/bug-description
-```
-
----
-
-### 📝 Development Guidelines
-
-#### Workflow Changes
-
-**When modifying n8n workflow:**
-
-1. ✅ Test all changes locally
-2. ✅ Document new nodes/features
-3. ✅ Update `docs/architecture.md` if structure changes
-4. ✅ Export workflow without credentials
-5. ✅ Verify JSON is valid
-
-**Export workflow:**
-
-```
-n8n → Workflow → Menu (☰) → Download
-→ Save as: 💀 - Google Calendar + TG + AI assistant v2.json
-```
-
-**⚠️ Important:** Remove all credentials before export:
-```
-Settings → Workflow → Remove sensitive data
-```
-
-#### Commits
-
-**Commit message format:**
-
-```
-type: brief description
-
-[optional] Detailed description
-
-[optional] Fixes #issue-number
-```
-
-**Types:**
-- `feat`: new feature
-- `fix`: bug fix
-- `docs`: documentation changes
-- `style`: formatting, typos
-- `refactor`: code refactoring
-- `test`: adding tests
-- `chore`: dependency updates, configuration
-
-**Examples:**
-
-```bash
-git commit -m "feat: add recurring events support"
-
-git commit -m "fix: timezone detection issue
-
-Timezone is now correctly detected via HTTP Request node
-instead of using default value from prompt.
-
-Fixes #42"
-
-git commit -m "docs: update examples in README"
-```
-
----
-
-### 🐛 Reporting Bugs
-
-**Before creating Issue:**
-
-1. ✅ Check if bug hasn't been reported
-2. ✅ Ensure you're using latest version
-3. ✅ Try reproducing on clean install
-
-**Issue Template:**
-
-```markdown
-## 🐛 Bug Description
-
-Clear and concise description of the problem.
-
-## 📋 Steps to Reproduce
-
-1. Open workflow
-2. Send message '...'
-3. Click '...'
-4. See error
-
-## ✅ Expected Behavior
-
-What should have happened.
-
-## ❌ Actual Behavior
-
-What actually happened.
-
-## 🖥️ Environment
-
-- **n8n version:** 1.x.x
-- **OS:** macOS 14.1 / Ubuntu 22.04 / Windows 11
-- **Node.js version:** 18.x.x
-- **Installation type:** Docker / npm / n8n Cloud
-
-## 📸 Screenshots
-
-If applicable, add screenshots.
-
-## 📝 Logs
-
-```
-Paste relevant logs here
-```
-
-## 🔍 Additional Context
-
-Any other information about the problem.
-```
-
----
-
-### 🔄 Pull Request Process
-
-#### 1. Before Creating PR
-
-**Checklist:**
-
-- [ ] Code works and is tested
-- [ ] Documentation updated
-- [ ] Commit messages follow guidelines
-- [ ] Branch updated with upstream/main
-- [ ] No conflicts
-- [ ] JSON workflow is valid
-- [ ] Credentials removed from export
-
-#### 2. Creating Pull Request
-
-```bash
-# Push to your fork
-git push origin feature/amazing-feature
-
-# Create PR on GitHub
-# base: main ← compare: feature/amazing-feature
-```
-
-**PR Template:**
-
-```markdown
-## 📝 Description
-
-Brief description of changes.
-
-## 🔗 Related Issues
-
-Closes #issue-number (if applicable)
-
-## 🎯 Type of Change
-
-- [ ] 🐛 Bug fix (non-breaking change)
-- [ ] ✨ New feature (non-breaking change)
-- [ ] 💥 Breaking change
-- [ ] 📝 Documentation update
-
-## ✅ Checklist
-
-- [ ] Code tested and works
-- [ ] Documentation updated
-- [ ] Commit messages correct
-- [ ] No conflicts with main
-- [ ] Credentials removed from workflow
-- [ ] Usage examples added (if new feature)
-
-## 📸 Screenshots / Examples
-
-If applicable, add screenshots or usage examples.
-
-## 🧪 How Tested
-
-Describe how you tested the changes:
-
-1. Step 1
-2. Step 2
-3. Result
-
-## 💬 Additional Information
-
-Any other information for reviewers.
-```
-
----
-
-### 📞 Questions?
-
-If something is unclear:
-- 💬 Ask in Issue
-- 📧 Contact: [@khanalytiq](https://t.me/khanalytiq)
-- 💬 Discuss in Discussions (if enabled)
-
----
-
-**⭐ Star this project if you find it useful!**
-
+**⭐ Если проект оказался полезным, поставьте звезду!**

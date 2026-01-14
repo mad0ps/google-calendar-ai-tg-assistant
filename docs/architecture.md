@@ -1,6 +1,434 @@
-# 🏗️ Архитектура Workflow / Architecture
+# 🏗️ Architecture / Архитектура Workflow
 
-[🇷🇺 Русская версия](#-русская-версия) | [🇬🇧 English Version](#-english-version)
+[🇬🇧 English](#-english-version) | [🇷🇺 Русский](#-русская-версия)
+
+---
+
+## 🇬🇧 English Version
+
+### General Architecture
+
+```
+┌─────────────────┐
+│  Telegram User  │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     TELEGRAM TRIGGER                         │
+│  Receives incoming messages (text or voice)                 │
+└────────┬────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   OWNER VERIFICATION                         │
+│  Check: ID === 331119294 (your ID)                          │
+└────┬────────────────────────────────────────────────────┬───┘
+     │ ✅ Authorized                        ❌ Unauthorized │
+     ▼                                                      ▼
+┌─────────────────┐                          ┌──────────────────────┐
+│ TEXT OR VOICE?  │                          │ UNAUTHORIZED MESSAGE │
+└────┬────────┬───┘                          │ "⛔ For personal     │
+     │        │                               │ use only"           │
+     │        └──────────────┐                └──────────────────────┘
+     │ 🎤 Voice          📝 Text
+     │                       │
+     ▼                       │
+┌──────────────┐             │
+│  GET FILE    │             │
+│ (Telegram)   │             │
+└──────┬───────┘             │
+       │                     │
+       ▼                     │
+┌──────────────┐             │
+│  TRANSCRIBE  │             │
+│  (Whisper)   │             │
+└──────┬───────┘             │
+       │                     │
+       └──────────┬──────────┘
+                  │
+                  ▼
+          ┌──────────────┐
+          │   TYPING     │
+          │  INDICATOR   │
+          └──────┬───────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    AI CALENDAR AGENT                         │
+│                    (GPT-4.1-mini)                            │
+│                                                              │
+│  Components:                                                 │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │ 1. OpenAI Chat Model (GPT-4.1-mini)                  │  │
+│  │ 2. Memory Buffer (10 messages context)               │  │
+│  │ 3. Tools:                                             │  │
+│  │    • Create Event                                     │  │
+│  │    • Get Events                                       │  │
+│  │    • Update Event                                     │  │
+│  │    • Delete Event                                     │  │
+│  │    • Get Timezone (HTTP Request)                      │  │
+│  └──────────────────────────────────────────────────────┘  │
+└────────┬────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────┐
+│              GOOGLE CALENDAR API                             │
+│  • Create/Update/Delete/Query events                        │
+│  • Timezone detection                                       │
+└────────┬────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────┐
+│               SEND TEXT MESSAGE                              │
+│  Send response to user via Telegram                         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Component Details
+
+**Key Components:**
+1. **Telegram Trigger** - Entry point for all user messages
+2. **Owner Verification** - Telegram ID-based access control
+3. **Text/Voice Detection** - Routes messages based on type
+4. **Voice Transcription** - OpenAI Whisper speech-to-text
+5. **AI Agent** - GPT-4.1-mini powered natural language processing
+6. **Google Calendar Tools** - CRUD operations on calendar events
+7. **Memory Buffer** - Maintains conversation context (10 messages)
+8. **Error Handling** - Catches and notifies owner of any errors
+
+---
+
+#### 1. Telegram Trigger
+**Type:** `n8n-nodes-base.telegramTrigger`  
+**Version:** 1.2
+
+**Purpose:** Entry point for all user messages
+
+**Parameters:**
+- `updates`: `["message"]` - tracks messages only
+- `webhookId`: unique webhook identifier
+
+**Output:**
+```json
+{
+  "message": {
+    "chat": {
+      "id": 331119294
+    },
+    "text": "Create meeting tomorrow at 3 PM",
+    "voice": {
+      "file_id": "..." // if voice message
+    }
+  }
+}
+```
+
+---
+
+#### 2. Owner Verification (Switch)
+**Type:** `n8n-nodes-base.switch`  
+**Version:** 3.3
+
+**Purpose:** Access control via Telegram ID
+
+**Logic:**
+```javascript
+if ($json.message.chat.id === "331119294") {
+  // Route: "boss" → Text or Voice?
+} else {
+  // Route: "unauthorized" → Unauthorized Message
+}
+```
+
+**Security:**
+- ✅ Whitelist approach (only allowed IDs)
+- ✅ All others receive rejection message
+- ✅ Prevents unauthorized access to Calendar API
+
+---
+
+#### 3. Text or Voice? (Switch)
+**Type:** `n8n-nodes-base.switch`  
+**Version:** 3.2
+
+**Purpose:** Determine incoming message type
+
+**Logic:**
+```javascript
+if ($json.message.voice.file_id exists) {
+  // Route: "Voice" → Get a file
+} else {
+  // Route: "Text" → Typing Indicator
+}
+```
+
+---
+
+#### 4. Get a file (Telegram)
+**Type:** `n8n-nodes-base.telegram`  
+**Version:** 1.2
+
+**Purpose:** Download voice file from Telegram
+
+**Parameters:**
+- `resource`: `"file"`
+- `fileId`: `={{ $json.message.voice.file_id }}`
+
+**Output:** Binary data (OGG audio file)
+
+---
+
+#### 5. Transcribe a recording (OpenAI Whisper)
+**Type:** `@n8n/n8n-nodes-langchain.openAi`  
+**Version:** 1.8
+
+**Purpose:** Speech-to-text conversion
+
+**Parameters:**
+- `resource`: `"audio"`
+- `operation`: `"transcribe"`
+
+**Model:** Whisper API (auto-detects language)
+
+**Output:**
+```json
+{
+  "text": "Create meeting tomorrow at three o'clock"
+}
+```
+
+**Cost:** ~$0.006 per minute of audio
+
+---
+
+#### 6. Typing Indicator (Telegram)
+**Type:** `n8n-nodes-base.telegram`  
+**Version:** 1.2
+
+**Purpose:** Shows "typing..." while AI processes request
+
+**Parameters:**
+- `operation`: `"sendChatAction"`
+- `chatId`: `={{ $('Telegram Trigger').item.json.message.chat.id }}`
+
+**UX Improvement:**
+- ✅ User sees bot is processing
+- ✅ Non-blocking (async)
+
+---
+
+#### 7. Calendar AI Agent 🧠
+**Type:** `@n8n/n8n-nodes-langchain.agent`  
+**Version:** 2.2
+
+**Purpose:** Main brain - interprets requests and calls tools
+
+**Input:**
+```javascript
+$if(
+  $('Transcribe a recording').isExecuted,
+  $('Transcribe a recording').item.json.text,
+  $('Telegram Trigger').item.json.message.text
+)
+```
+*Uses transcribed text if voice, otherwise regular text*
+
+**System Prompt (abbreviated):**
+```
+You are a professional calendar management assistant integrated with Google Calendar via Telegram.
+
+Core Capabilities:
+- Create calendar events with smart date/time parsing
+- Retrieve events by date range or search criteria
+- Update existing events (title, time, description)
+- Delete events safely with confirmation
+
+Critical Rules:
+1. Current time: {{ $now }}
+2. Parse natural language: "tomorrow at 3pm", "next Monday 10:00"
+3. Always confirm ambiguous times with user
+4. Use ISO 8601 format for API calls
+5. Response in user's language
+6. Use emojis: 📅 ✅ ❌ 🔍 ⏰ 🗓️
+...
+```
+
+**Connected Components:**
+1. **Language Model:** GPT-4.1-mini
+2. **Memory:** Buffer Window (10 messages)
+3. **Tools:** 5 tools for calendar operations
+
+---
+
+#### 7.1 OpenAI Chat Model
+**Type:** `@n8n/n8n-nodes-langchain.lmChatOpenAi`  
+**Version:** 1.2
+
+**Parameters:**
+- `model`: `"gpt-4.1-mini"`
+
+**Characteristics:**
+- **Context window:** 128K tokens
+- **Output:** 16K tokens max
+- **Cost:** ~$0.15 / 1M input tokens, ~$0.60 / 1M output tokens
+- **Latency:** ~1-3 seconds
+- **Capabilities:** Function calling, structured outputs
+
+---
+
+#### 7.2 Simple Memory (Buffer Window)
+**Type:** `@n8n/n8n-nodes-langchain.memoryBufferWindow`  
+**Version:** 1.3
+
+**Purpose:** Stores dialog context for personalized responses
+
+**Parameters:**
+- `sessionIdType`: `"customKey"`
+- `sessionKey`: `"331119294"` (your Telegram ID)
+- `contextWindowLength`: `10` (messages)
+
+**How it works:**
+```
+User: Create meeting tomorrow at 3 PM
+Bot: ✅ Created event for tomorrow at 3 PM
+
+User: Move it to 4 PM  // "it" = last created event
+Bot: ✅ Updated event to 4 PM  // AI understands context
+```
+
+**Storage:** SQLite in n8n (automatic)
+
+---
+
+#### 7.3 Tools (AI Agent Tools)
+
+##### Tool 1: Create an event in Google Calendar
+**Type:** `n8n-nodes-base.googleCalendarTool`  
+**Version:** 1.3
+
+**Parameters (extracted by AI from request):**
+```javascript
+{
+  calendar: "user@gmail.com",
+  start: $fromAI('Start', ``, 'string'),      // "2025-01-02T15:00:00"
+  end: $fromAI('End', ``, 'string'),          // "2025-01-02T16:00:00"
+  summary: $fromAI('Summary', ``, 'string'),  // "Meeting with Anna"
+  useDefaultReminders: $fromAI('Use_Default_Reminders', ``, 'boolean')
+}
+```
+
+---
+
+##### Tool 2: Get many events in Google Calendar
+**Type:** `n8n-nodes-base.googleCalendarTool`  
+**Version:** 1.3
+
+**Purpose:** Search and retrieve events by criteria
+
+**Parameters:**
+```javascript
+{
+  operation: "getAll",
+  calendar: "user@gmail.com",
+  limit: 10,
+  timeMin: $fromAI('After', ``, 'string'),   // "2025-01-01T00:00:00"
+  timeMax: $fromAI('Before', ``, 'string'),  // "2025-01-07T23:59:59"
+  fields: $fromAI('Fields', ``, 'string')    // optional
+}
+```
+
+---
+
+##### Tool 3: Update an event in Google Calendar
+**Type:** `n8n-nodes-base.googleCalendarTool`  
+**Version:** 1.3
+
+**Purpose:** Update existing events
+
+**Important:** AI first uses "Get many events" to get `eventId`, then updates
+
+---
+
+##### Tool 4: Delete an event in Google Calendar
+**Type:** `n8n-nodes-base.googleCalendarTool`  
+**Version:** 1.3
+
+**Purpose:** Delete events
+
+**Security:** AI requests confirmation before deletion (configured in prompt)
+
+---
+
+##### Tool 5: HTTP Request (Get Timezone)
+**Type:** `n8n-nodes-base.httpRequestTool`  
+**Version:** 4.3
+
+**Purpose:** Get user's timezone from Google Calendar
+
+**Parameters:**
+```javascript
+{
+  url: "https://www.googleapis.com/calendar/v3/users/me/settings/timezone",
+  authentication: "predefinedCredentialType",
+  nodeCredentialType: "googleCalendarOAuth2Api"
+}
+```
+
+**Response:**
+```json
+{
+  "value": "Europe/Moscow"
+}
+```
+
+---
+
+### Performance Metrics
+
+**Average Response Times:**
+- Text query → Simple response: 2-3 seconds
+- Text query → Create event: 3-5 seconds
+- Voice message → Response: 5-8 seconds
+- Voice message → Create event: 7-10 seconds
+
+**Cost per 1000 requests:** ~$0.80
+- GPT-4.1-mini: ~$0.20
+- Whisper (20% voice): ~$0.60
+- Google Calendar API: Free
+- Telegram API: Free
+
+---
+
+### Security Features
+
+✅ Telegram ID whitelist  
+✅ OAuth2 for Google Calendar  
+✅ Encrypted credential storage in n8n  
+✅ No sensitive data in exported workflow JSON  
+✅ Error notifications to owner only
+
+---
+
+### Rate Limits
+
+| API | Limit | Handling |
+|-----|-------|----------|
+| Telegram Bot | 30 msg/sec | n8n auto-throttles |
+| OpenAI GPT-4 | 10,000 RPM (Tier 1) | Error → Notification |
+| OpenAI Whisper | 50 RPM | Error → Notification |
+| Google Calendar | 1,000 req/100 sec/user | Error → Notification |
+
+---
+
+### Extensibility
+
+**Add more users:** Modify Owner Verification whitelist  
+**Add more tools:** Connect new n8n nodes to AI Agent  
+**Integrate services:** Notion, Slack, Gmail, Zoom, etc.  
+**Customize prompts:** Modify AI Agent system prompt
 
 ---
 
@@ -808,142 +1236,3 @@ conditions: [
 1. Добавьте соответствующий n8n node
 2. Подключите к AI Agent как tool
 3. Обновите System Prompt с новыми capabilities
-
----
-
-## 🇬🇧 English Version
-
-### General Architecture
-
-```
-┌─────────────────┐
-│  Telegram User  │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     TELEGRAM TRIGGER                         │
-│  Receives incoming messages (text or voice)                 │
-└────────┬────────────────────────────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   OWNER VERIFICATION                         │
-│  Check: ID === 331119294 (your ID)                          │
-└────┬────────────────────────────────────────────────────┬───┘
-     │ ✅ Authorized                        ❌ Unauthorized │
-     ▼                                                      ▼
-┌─────────────────┐                          ┌──────────────────────┐
-│ TEXT OR VOICE?  │                          │ UNAUTHORIZED MESSAGE │
-└────┬────────┬───┘                          │ "⛔ For personal     │
-     │        │                               │ use only"           │
-     │        └──────────────┐                └──────────────────────┘
-     │ 🎤 Voice          📝 Text
-     │                       │
-     ▼                       │
-┌──────────────┐             │
-│  GET FILE    │             │
-│ (Telegram)   │             │
-└──────┬───────┘             │
-       │                     │
-       ▼                     │
-┌──────────────┐             │
-│  TRANSCRIBE  │             │
-│  (Whisper)   │             │
-└──────┬───────┘             │
-       │                     │
-       └──────────┬──────────┘
-                  │
-                  ▼
-          ┌──────────────┐
-          │   TYPING     │
-          │  INDICATOR   │
-          └──────┬───────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    AI CALENDAR AGENT                         │
-│                    (GPT-4.1-mini)                            │
-│                                                              │
-│  Components:                                                 │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │ 1. OpenAI Chat Model (GPT-4.1-mini)                  │  │
-│  │ 2. Memory Buffer (10 messages context)               │  │
-│  │ 3. Tools:                                             │  │
-│  │    • Create Event                                     │  │
-│  │    • Get Events                                       │  │
-│  │    • Update Event                                     │  │
-│  │    • Delete Event                                     │  │
-│  │    • Get Timezone (HTTP Request)                      │  │
-│  └──────────────────────────────────────────────────────┘  │
-└────────┬────────────────────────────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────────────────────────┐
-│              GOOGLE CALENDAR API                             │
-│  • Create/Update/Delete/Query events                        │
-│  • Timezone detection                                       │
-└────────┬────────────────────────────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────────────────────────┐
-│               SEND TEXT MESSAGE                              │
-│  Send response to user via Telegram                         │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-### Component Details
-
-*(Full English translation of architecture follows same structure as Russian version above)*
-
-**Key Components:**
-1. **Telegram Trigger** - Entry point for all user messages
-2. **Owner Verification** - Telegram ID-based access control
-3. **Text/Voice Detection** - Routes messages based on type
-4. **Voice Transcription** - OpenAI Whisper speech-to-text
-5. **AI Agent** - GPT-4.1-mini powered natural language processing
-6. **Google Calendar Tools** - CRUD operations on calendar events
-7. **Memory Buffer** - Maintains conversation context (10 messages)
-8. **Error Handling** - Catches and notifies owner of any errors
-
----
-
-### Performance Metrics
-
-**Average Response Times:**
-- Text query → Simple response: 2-3 seconds
-- Text query → Create event: 3-5 seconds
-- Voice message → Response: 5-8 seconds
-- Voice message → Create event: 7-10 seconds
-
-**Cost per 1000 requests:** ~$0.80
-- GPT-4.1-mini: ~$0.20
-- Whisper (20% voice): ~$0.60
-- Google Calendar API: Free
-- Telegram API: Free
-
----
-
-### Security Features
-
-✅ Telegram ID whitelist  
-✅ OAuth2 for Google Calendar  
-✅ Encrypted credential storage in n8n  
-✅ No sensitive data in exported workflow JSON  
-✅ Error notifications to owner only
-
----
-
-### Extensibility
-
-**Add more users:** Modify Owner Verification whitelist  
-**Add more tools:** Connect new n8n nodes to AI Agent  
-**Integrate services:** Notion, Slack, Gmail, Zoom, etc.  
-**Customize prompts:** Modify AI Agent system prompt
-
----
-
-For full implementation details, see the Russian version above.
-
